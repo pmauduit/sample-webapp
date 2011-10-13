@@ -34,6 +34,10 @@
           <param-value>localhost:8082</param-value>
         </init-param>
         <init-param>
+          <param-name>proxyReceptorUrl</param-name>
+          <param-value>/sample-webapp/proxyCallback</param-value>
+        </init-param>
+        <init-param>
           <param-name>acceptAnyProxy</param-name>
           <param-value>true</param-value>
         </init-param>        
@@ -69,6 +73,10 @@
     <filter-mapping>
       <filter-name>CAS Validation Filter</filter-name>
       <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+      <filter-name>CAS Validation Filter</filter-name>
+      <url-pattern>/proxyCallback</url-pattern>
     </filter-mapping>
 
     <filter-mapping>
