@@ -4,55 +4,58 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
+import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jasig.cas.client.authentication.AuthenticationFilter;
+import org.jasig.cas.client.util.AssertionHolder;
 import org.jasig.cas.client.validation.Assertion;
 
-import sun.net.www.content.text.PlainTextInputStream;
-
 public class Main extends HttpServlet {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8359715423257610348L;
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		
-		
-		Assertion assertion = (Assertion) req.getSession().getAttribute(AuthenticationFilter.CONST_CAS_ASSERTION);
-		
-			String sUser = req.getRemoteUser();
-			String myproxyticket = assertion.getPrincipal().getProxyTicketFor("http://localhost:8082/sample-webapp/proxy");
-			System.out.println(myproxyticket);
 
-			URLConnection u = new URL("http://localhost:8082/sample-webapp/proxy?ticket=" + myproxyticket).openConnection();
-			u.connect();
-			String ret2 = "";
-			HttpURLConnection c = null;
-			
-			try {
-				InputStream ret = (InputStream) u.getInputStream();
-				ret2 =  new BufferedReader(new InputStreamReader(ret)).readLine();
-				c = (HttpURLConnection) u;
-				resp.setContentType("text/plain");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+		StringBuilder response = new StringBuilder();
+		response.append("request remote user: ").append(req.getRemoteUser()).append("\n");
 
-//            if(assertion != null && assertion.getPrincipal()!=null) {
-//                sUser = assertion.getPrincipal().getName();
-//            	
-//            } else {
-//            	sUser = "not logged in";
-//            }
+		Assertion assertion = AssertionHolder.getAssertion();
+		response.append("assertion principal name: ").append(assertion.getPrincipal().getName()).append("\n");
 
-		resp.getWriter().write(((c != null) ? c.getResponseCode() : 500)  +  " Hellow: " + ret2 + "\nsUser = " + sUser);
+		String baseURL = "http://localhost:8082/sample-webapp/proxy";
+
+		printAtts("Assertion Attributes", assertion.getAttributes(),response);
+		printAtts("Principal Attributes", assertion.getPrincipal().getAttributes(),response);
+		String myproxyticket = assertion.getPrincipal().getProxyTicketFor(baseURL);
+		response.append("proxyticket: ").append(myproxyticket).append("\n");
 		
+		try {
+			InputStream in = new URL(baseURL+"?ticket="+ myproxyticket).openStream();
+			String proxyResponse = new BufferedReader(new InputStreamReader(in)).readLine();
+			response.append("proxy response: ").append(proxyResponse).append("\n");
+		} catch (Exception e) {
+			response.append("proxy response: ").append("failure").append("\n");
+			response.append("exception: ").append(e.getMessage()).append("\n");
+		}
+		resp.getWriter().write(response.toString());
+	}
+
+	private void printAtts(String string, Map attributes, StringBuilder response) {
+		response.append(string).append("\n");
+		Set<Map.Entry<Object, Object>> entries = attributes.entrySet();
+		for (Map.Entry<Object, Object> entry : entries) {
+			response.append("\t").append(entry.getKey()).append(" -> ").append(entry.getValue()).append("\n");
+		}
 	}
 }
