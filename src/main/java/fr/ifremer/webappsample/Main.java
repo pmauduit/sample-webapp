@@ -33,7 +33,7 @@ public class Main extends HttpServlet {
 		Assertion assertion = AssertionHolder.getAssertion();
 		response.append("assertion principal name: ").append(assertion.getPrincipal().getName()).append("\n");
 
-		String baseURL = "http://localhost:8082/sample-webapp/proxy";
+		String baseURL = "http://localhost:8080/sample-webapp/proxy";
 
 		printAtts("Assertion Attributes", assertion.getAttributes(),response);
 		printAtts("Principal Attributes", assertion.getPrincipal().getAttributes(),response);
